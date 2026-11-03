@@ -21,6 +21,7 @@ class Database:
         self.users = self.db["users"]
         self.payments = self.db["payments"]
         self.metrics = self.db["metrics"]
+        self.settings = self.db["settings"]
 
     async def initialize_indexes(self) -> None:
         """Create indexes for fast lookups and uniqueness guarantees."""
@@ -259,5 +260,27 @@ class Database:
             if "user_id" in doc:
                 yield int(doc["user_id"])
 
+    # ------------------------------------------------------------------
+    # Custom screen images (managed by admins via /setimg)
+    # ------------------------------------------------------------------
+    async def get_screen_images(self) -> Dict[str, str]:
+        doc = await self.settings.find_one({"_id": "screen_images"}) or {}
+        return dict(doc.get("images", {}))
+
+    async def set_screen_image(self, screen: str, image: str) -> None:
+        await self.settings.update_one(
+            {"_id": "screen_images"},
+            {"$set": {f"images.{screen}": image}},
+            upsert=True,
+        )
+
+    async def delete_screen_image(self, screen: str) -> None:
+        await self.settings.update_one(
+            {"_id": "screen_images"},
+            {"$unset": {f"images.{screen}": ""}},
+            upsert=True,
+        )
+
 
 db = Database(Config.MONGO_URI, Config.DATABASE_NAME)
+            
