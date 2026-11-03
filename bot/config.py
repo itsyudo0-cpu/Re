@@ -37,7 +37,7 @@ class Config:
     API_ID: int = int(os.getenv("API_ID", "26944587"))
     API_HASH: str = os.getenv("API_HASH", "7261a455f2a6159b8a2fbfecd1a63004")
     BOT_TOKEN: str = os.getenv("BOT_TOKEN", "8923673880:AAE-w7Ljts8PZ9vHbZOZhe5FlRpITQJdm7s")
-    BOT_USERNAME: str = os.getenv("BOT_USERNAME", "CleanwebReaderBot").lstrip("@")
+    BOT_USERNAME: str = os.getenv("BOT_USERNAME", "CleanReaderBot").lstrip("@")
 
     # 2. MongoDB Async Driver (Motor) Configuration
     MONGO_URI: str = os.getenv("MONGO_URI", "mongodb+srv://otxstudioofficial1_db_user:MEAH3IXpZFAxHHew@cluster0.n23pbwq.mongodb.net/?appName=Cluster0")
