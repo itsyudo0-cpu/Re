@@ -7,11 +7,14 @@ Telegraph Instant View account, and background tasks.
 
 import asyncio
 import logging
+import os
+from aiohttp import web
 from pyrogram import Client, idle
 from pyrogram.enums import ParseMode
 from config import Config
 from database import db
 from utils.extractor import extractor_service
+from utils.images import load_images
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,11 +24,39 @@ logger = logging.getLogger("CleanReaderBot")
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 
 
+async def start_health_server() -> web.AppRunner:
+    """
+    Tiny HTTP server so the bot can run as a Render *Web Service*.
+    Render requires every Web Service to listen on $PORT; a polling bot
+    alone opens no port, so the deploy is marked failed ("No open ports detected").
+    Also gives an uptime monitor a URL to ping (/ or /health).
+    """
+
+    async def _ok(_request: web.Request) -> web.Response:
+        return web.Response(text="CleanReader bot is running")
+
+    app = web.Application()
+    app.router.add_get("/", _ok)
+    app.router.add_get("/health", _ok)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.getenv("PORT", "10000"))
+    await web.TCPSite(runner, "0.0.0.0", port).start()
+    logger.info("Health server listening on port %s", port)
+    return runner
+
+
 async def main() -> None:
     Config.validate()
 
+    # Open the HTTP port first so Render's port scan succeeds immediately
+    health_runner = await start_health_server()
+
     # Initialize MongoDB indexes
     await db.initialize_indexes()
+
+    # Load admin-set screen images (/setimg)
+    await load_images()
 
     # Initialize Telegraph account for Instant View publishing
     await extractor_service.init_telegraph()
@@ -56,6 +87,7 @@ async def main() -> None:
     await idle()
     logger.info("Shutting down CleanReader Bot...")
     await app.stop()
+    await health_runner.cleanup()
 
 
 if __name__ == "__main__":
@@ -63,3 +95,4 @@ if __name__ == "__main__":
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         logger.info("Bot stopped cleanly.")
+        
