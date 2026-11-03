@@ -26,6 +26,7 @@ from pyrogram.errors import (
 )
 import asyncio
 from config import Config
+from utils.images import render
 
 logger = logging.getLogger(__name__)
 
@@ -127,22 +128,12 @@ def force_subscribe(func: Callable[..., Any]) -> Callable[..., Any]:
                     "⚠️ You haven't joined the channel yet! Please join first.",
                     show_alert=True,
                 )
-                if update.message:
-                    try:
-                        await update.message.edit_text(
-                            FSUB_PROMPT_TEXT,
-                            reply_markup=get_fsub_keyboard(),
-                            disable_web_page_preview=True,
-                        )
-                    except Exception:
-                        pass
+                try:
+                    await render(update, "fsub", FSUB_PROMPT_TEXT, get_fsub_keyboard())
+                except Exception:
+                    pass
             else:
-                await update.reply_text(
-                    FSUB_PROMPT_TEXT,
-                    reply_markup=get_fsub_keyboard(),
-                    disable_web_page_preview=True,
-                    quote=True,
-                )
+                await render(update, "fsub", FSUB_PROMPT_TEXT, get_fsub_keyboard())
             return None
 
         return await func(client, update, *args, **kwargs)
