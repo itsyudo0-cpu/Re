@@ -19,6 +19,8 @@ const ai = new GoogleGenAI({
   },
 });
 
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+
 const BOT_FILE_MANIFEST = [
   {
     path: 'main.py',
@@ -140,9 +142,15 @@ function stripHtmlToCleanText(html: string): { title: string; text: string } {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  // Render (and most hosts) provide the port via the PORT env variable
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json({ limit: '2mb' }));
+
+  // Simple health check (useful for Render / uptime monitors)
+  app.get('/health', (_req, res) => {
+    res.json({ ok: true });
+  });
 
   // 1. Return all Python Bot files from /bot directory
   app.get('/api/bot-files', async (_req, res) => {
@@ -254,7 +262,7 @@ Generate:
 4. 4 to 6 clean, distraction-free reader paragraphs stripped of ads and navigation clutter.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: GEMINI_MODEL,
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
@@ -339,13 +347,14 @@ Generate:
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*all', (_req, res) => {
+    // Express 4 syntax ('*all' is Express 5 only)
+    app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`CleanReader Architect Server running on http://localhost:${PORT}`);
+    console.log(`CleanReader Architect Server running on port ${PORT}`);
   });
 }
 
