@@ -36,7 +36,7 @@ class Config:
     # 1. Telegram MTProto & Bot Credentials
     API_ID: int = int(os.getenv("API_ID", "26944587"))
     API_HASH: str = os.getenv("API_HASH", "7261a455f2a6159b8a2fbfecd1a63004")
-    BOT_TOKEN: str = os.getenv("BOT_TOKEN", "8923673880:AAE-w7Ljts8PZ9vHbZOZhe5FlRpITQJdm7s")
+    BOT_TOKEN: str = os.getenv("BOT_TOKEN", "8923673880:AAHM3TBMv3Oomk7KjDBLzpS0yrUSStMez2s")
     BOT_USERNAME: str = os.getenv("BOT_USERNAME", "CleanReaderBot").lstrip("@")
 
     # 2. MongoDB Async Driver (Motor) Configuration
